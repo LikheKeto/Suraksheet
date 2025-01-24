@@ -29,7 +29,11 @@ export async function deleteDocument(doc: Document) {
 	if (!res.ok) {
 		throw deletionError((await res.json())['error']);
 	}
-	if (Object.keys(documentsStore).includes(bin.name)) {
+
+	let existingDocs: Record<string, Document[]> = {};
+	documentsStore.subscribe((d) => (existingDocs = d));
+
+	if (Object.keys(existingDocs).includes(bin.name)) {
 		documentsStore.update((docs) => {
 			docs[bin.name] = docs[bin.name].filter((d) => d.id !== doc.id);
 			return docs;

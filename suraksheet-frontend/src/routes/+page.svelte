@@ -3,6 +3,7 @@
 	import CreateBin from '$lib/components/CreateBin.svelte';
 	import CreateDocument from '$lib/components/CreateDocument.svelte';
 	import Documents from '$lib/components/Documents.svelte';
+	import { binsStore } from '$lib/store';
 	import { Breadcrumb, BreadcrumbItem } from 'flowbite-svelte';
 	import { CirclePlusSolid } from 'flowbite-svelte-icons';
 
@@ -36,4 +37,7 @@
 	</button>
 </div>
 <Documents />
-<CreateDocument bind:hidden={hideDocumentCreator} />
+<CreateDocument
+	bind:hidden={hideDocumentCreator}
+	binID={$binsStore.find((bin) => bin.name === 'No Bin')?.id || undefined}
+/>

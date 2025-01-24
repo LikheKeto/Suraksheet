@@ -7,7 +7,7 @@
 </script>
 
 <div
-	class="my-2 flex w-full flex-wrap gap-2 rounded-md bg-gray-200 bg-opacity-50 p-4 dark:bg-gray-800"
+	class="my-2 flex w-full flex-wrap gap-2 rounded-md bg-gray-100 bg-opacity-50 p-4 dark:bg-gray-800"
 >
 	{#if $loadingBins}
 		<Skeleton divClass="animate-pulse w-full text-primary-500" size="lg" />

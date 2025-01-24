@@ -3,6 +3,8 @@
 	import { DarkMode } from 'flowbite-svelte';
 	import '../app.css';
 	import ToastRenderer from '$lib/components/popups/ToastRenderer.svelte';
+	import SearchBar from '$lib/components/SearchBar.svelte';
+	import Tooltips from '$lib/components/ui/Tooltips.svelte';
 </script>
 
 <svelte:head>
@@ -10,6 +12,7 @@
 </svelte:head>
 
 <SideNav />
+<Tooltips />
 <ToastRenderer position="top-left" />
 <div class="fixed right-5 top-5">
 	<DarkMode
@@ -17,6 +20,7 @@
 		btnClass="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-xl p-2"
 	/>
 </div>
-<div class="container m-auto mt-16 w-full p-5 text-gray-700 dark:text-gray-300">
+<SearchBar />
+<div class="container m-auto w-full p-5 text-gray-700 dark:text-gray-300">
 	<slot></slot>
 </div>
