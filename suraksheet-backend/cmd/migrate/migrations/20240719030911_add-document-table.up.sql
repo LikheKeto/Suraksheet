@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS documents(
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `referenceName` VARCHAR(255) NOT NULL,
+    `bin` INT UNSIGNED NOT NULL,
+    `url` TEXT NOT NULL,
+    `extract` VARCHAR(1000) NOT NULL DEFAULT '',
+    `createdAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (bin) REFERENCES bins(id) ON DELETE CASCADE,
+    UNIQUE(referenceName, bin)
+);

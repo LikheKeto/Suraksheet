@@ -1,0 +1,1 @@
+ALTER TABLE bins DROP INDEX uq_bin_name;
