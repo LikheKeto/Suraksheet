@@ -1,13 +1,7 @@
 <script lang="ts">
 	import { getReadableFileSizeString } from '$lib';
-	import { binsStore } from '$lib/store';
 	import type { Bin, Document } from '$lib/types';
-	import {
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-	} from 'flowbite-svelte';
+	import { Table, TableBody, TableBodyCell, TableBodyRow } from 'flowbite-svelte';
 	import {
 		ArchiveOutline,
 		BarsFromLeftOutline,
@@ -15,37 +9,17 @@
 		FileCloneOutline,
 		FloppyDiskAltOutline,
 		FileImageOutline,
-
 		FilePdfSolid,
-
 		BookOpenOutline
-
-
 	} from 'flowbite-svelte-icons';
 
 	export let doc: Document;
 	export let docSize: number;
-    export let docType:string;
-	export let bin: Bin|undefined;
+	export let docType: string;
+	export let bin: Bin | undefined;
 
-	let readingAll = false
+	let readingAll = false;
 </script>
-
-<style>
-    .text-wrap {
-        white-space: pre-wrap; /* Allows text to wrap */
-        word-wrap: break-word; /* Prevents overflow */
-    }
-
-    .collapsed {
-        max-height: 1rem; /* Adjust the height as needed */
-        overflow: hidden;
-    }
-
-    .expanded {
-        max-height: none;
-    }
-</style>
 
 <Table>
 	<TableBody tableBodyClass="divide-y">
@@ -80,7 +54,7 @@
 			>
 			<TableBodyCell>{getReadableFileSizeString(docSize)}</TableBodyCell>
 		</TableBodyRow>
-        <TableBodyRow>
+		<TableBodyRow>
 			<TableBodyCell class="flex items-center gap-1"
 				><FilePdfSolid class="text-primary-600 dark:text-primary-300" size="sm" />File type</TableBodyCell
 			>
@@ -94,19 +68,41 @@
 		</TableBodyRow>
 		<TableBodyRow>
 			<TableBodyCell class="flex items-center gap-1"
-				><BookOpenOutline class="text-primary-600 dark:text-primary-300" size="sm" />Extract</TableBodyCell
+				><BookOpenOutline
+					class="text-primary-600 dark:text-primary-300"
+					size="sm"
+				/>Extract</TableBodyCell
 			>
 			<TableBodyCell class="text-wrap">
 				<!-- Conditionally toggle between collapsed and expanded content -->
 				<div class={readingAll ? 'expanded' : 'collapsed'}>
-					{doc.extract || "Extract not found"}
+					{doc.extract || 'Extract not found'}
 				</div>
-				<button class="text-blue-500 underline" on:click={() => {
-					readingAll = !readingAll;
-				}}>
-					{readingAll ? "show less" : "show more"}
+				<button
+					class="text-blue-500 underline"
+					on:click={() => {
+						readingAll = !readingAll;
+					}}
+				>
+					{readingAll ? 'show less' : 'show more'}
 				</button>
 			</TableBodyCell>
 		</TableBodyRow>
 	</TableBody>
 </Table>
+
+<style>
+	.text-wrap {
+		white-space: pre-wrap; /* Allows text to wrap */
+		word-wrap: break-word; /* Prevents overflow */
+	}
+
+	.collapsed {
+		max-height: 1rem; /* Adjust the height as needed */
+		overflow: hidden;
+	}
+
+	.expanded {
+		max-height: none;
+	}
+</style>

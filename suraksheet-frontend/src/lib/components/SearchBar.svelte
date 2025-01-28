@@ -33,7 +33,7 @@
 	};
 
 	$: if (isOpen && searchInput) {
-		searchInput.$$.root.children[5].childNodes[0].childNodes[0].childNodes[1].childNodes[3].childNodes[0].childNodes[3].focus();
+		searchInput.$$?.root?.children[5]?.childNodes[0]?.childNodes[0]?.childNodes[1]?.childNodes[3]?.childNodes[0]?.childNodes[3]?.focus();
 	}
 </script>
 

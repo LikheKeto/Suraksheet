@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Bins from '$lib/components/Bins.svelte';
-	import CreateBin from '$lib/components/CreateBin.svelte';
-	import CreateDocument from '$lib/components/CreateDocument.svelte';
-	import Documents from '$lib/components/Documents.svelte';
+	import Bins from '$lib/components/bins/Bins.svelte';
+	import CreateBin from '$lib/components/bins/CreateEditBin.svelte';
+	import CreateDocument from '$lib/components/documents/CreateDocument.svelte';
+	import Documents from '$lib/components/documents/Documents.svelte';
 	import { binsStore } from '$lib/store';
 	import { Breadcrumb, BreadcrumbItem } from 'flowbite-svelte';
 	import { CirclePlusSolid } from 'flowbite-svelte-icons';

@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { PUBLIC_SERVER_URL } from '$env/static/public';
 	import { binsStore, token } from '$lib/store';
-	import type { Bin } from '$lib/types';
 	import { Drawer, CloseButton, Label, Input, Select, Fileupload, Helper } from 'flowbite-svelte';
-	import { InfoCircleSolid, UserAddOutline, CalendarEditSolid } from 'flowbite-svelte-icons';
+	import { InfoCircleSolid, CalendarEditSolid } from 'flowbite-svelte-icons';
 	import { sineIn } from 'svelte/easing';
-	import Button from './ui/Button.svelte';
+	import Button from '../ui/Button.svelte';
 
 	export let hidden = true;
 	export let binID: number | undefined = undefined;
@@ -57,6 +56,7 @@
 			});
 			if (!res.ok) {
 				error = (await res.json())['error'];
+				loading = false;
 				return;
 			}
 			error = '';

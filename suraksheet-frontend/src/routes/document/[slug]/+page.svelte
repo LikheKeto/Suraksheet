@@ -12,10 +12,10 @@
 	} from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import { downloadFileFromUrl, getAsset } from '$lib';
-	import Compressor from '$lib/components/Compressor.svelte';
-	import DocumentDetails from '$lib/components/DocumentDetails.svelte';
+	import Compressor from '$lib/components/documents/Compressor.svelte';
+	import DocumentDetails from '$lib/components/documents/DocumentDetails.svelte';
 	import { DownloadSolid, TrashBinSolid } from 'flowbite-svelte-icons';
-	import Confirmer from '$lib/components/Confirmer.svelte';
+	import Confirmer from '$lib/components/popups/Confirmer.svelte';
 	import { deleteDocument } from '$lib/crud';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/Button.svelte';

@@ -1,4 +1,3 @@
-import { page } from '$app/stores';
 import { PUBLIC_SERVER_URL } from '$env/static/public';
 import { binsStore, documentsStore, loadingDocuments, token } from '$lib/store';
 import type { Bin, Document } from '$lib/types.js';
@@ -6,15 +5,6 @@ import type { Bin, Document } from '$lib/types.js';
 /** @type {import('./$types').PageLoad} */
 export async function load({ params, fetch, parent }) {
 	await parent();
-
-	let pageState;
-	page.subscribe((p) => {
-		pageState = p;
-	});
-
-	if (pageState?.loading === false) {
-		loadingDocuments.set(true);
-	}
 
 	let tok;
 	let bins: Bin[] = [];
@@ -55,7 +45,6 @@ export async function load({ params, fetch, parent }) {
 		});
 	}
 
-	loadingDocuments.set(false);
 	return {
 		binID: bin.id
 	};
