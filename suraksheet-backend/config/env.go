@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -12,8 +12,9 @@ type Config struct {
 
 	DBUser     string
 	DBPassword string
-	DBAddress  string
+	DBHost     string
 	DBName     string
+	DBPort     int
 
 	MinioURL        string
 	MinioAccessKey  string
@@ -26,15 +27,19 @@ type Config struct {
 var Envs = initConfig()
 
 func initConfig() Config {
+	port, err := strconv.Atoi(getEnv("POSTGRES_PORT", "5432"))
+	if err != nil {
+		panic(err)
+	}
 	return Config{
-		PublicHost: getEnv("SERVER_PUBLIC_HOST", "http://localhost"),
-		Port:       getEnv("SERVER_PORT", ":8080"),
-		JWTSecret:  getEnv("SERVER_JWT_SECRET", ""),
-		DBUser:     getEnv("MYSQL_USER", "root"),
-		DBPassword: getEnv("MYSQL_PASSWORD", "mypassword"),
-		DBAddress: fmt.Sprintf("%s:%s", getEnv("MYSQL_HOST", "127.0.0.1"),
-			getEnv("MYSQL_PORT", "3306")),
-		DBName:          getEnv("MYSQL_DATABASE", "suraksheet"),
+		PublicHost:      getEnv("SERVER_PUBLIC_HOST", "http://localhost"),
+		Port:            getEnv("SERVER_PORT", ":8080"),
+		JWTSecret:       getEnv("SERVER_JWT_SECRET", ""),
+		DBUser:          getEnv("POSTGRES_USER", "root"),
+		DBPassword:      getEnv("POSTGRES_PASSWORD", "mypassword"),
+		DBHost:          getEnv("POSTGRES_HOST", "127.0.0.1"),
+		DBPort:          port,
+		DBName:          getEnv("POSTGRES_DATABASE", "suraksheet"),
 		MinioURL:        getEnv("MINIO_ENDPOINT", "127.0.0.1:9000"),
 		MinioAccessKey:  getEnv("MINIO_ACCESS_KEY", ""),
 		MinioSecretKey:  getEnv("MINIO_SECRET_KEY", ""),

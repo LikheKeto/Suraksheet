@@ -12,14 +12,14 @@ type UserStore interface {
 
 type BinStore interface {
 	GetBinsByUser(id int) ([]Bin, error)
-	CreateBin(name string, ownerID int) error
+	CreateBin(name string, ownerID int) (*Bin, error)
 	GetBinById(id int) (*Bin, error)
 	UpdateBinName(id int, userID int, name string) error
 	DeleteBin(id int, userID int) error
 }
 
 type DocumentStore interface {
-	InsertDocument(doc Document) (int64, error)
+	InsertDocument(doc Document) (*Document, error)
 	GetDocumentByID(id int) (*Document, error)
 	UpdateDocumentName(id int, name string) error
 	ReferenceNameExistsInBin(name string, binID int) error

@@ -18,7 +18,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) DeleteBin(binID int, userID int) error {
-	_, err := s.db.Exec("DELETE FROM bins WHERE id = ? AND owner = ?;", binID, userID)
+	_, err := s.db.Exec("DELETE FROM bins WHERE id = $1 AND owner = $2;", binID, userID)
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (s *Store) DeleteBin(binID int, userID int) error {
 }
 
 func (s *Store) GetBinById(binID int) (*types.Bin, error) {
-	row := s.db.QueryRow("SELECT * FROM bins WHERE id = ?;", binID)
+	row := s.db.QueryRow("SELECT * FROM bins WHERE id = $1;", binID)
 	bin := new(types.Bin)
 	if err := row.Scan(&bin.ID, &bin.Name, &bin.OwnerID, &bin.CreatedAt); err != nil {
 		if err == sql.ErrNoRows {
@@ -38,7 +38,7 @@ func (s *Store) GetBinById(binID int) (*types.Bin, error) {
 }
 
 func (s *Store) UpdateBinName(binID int, userID int, newName string) error {
-	_, err := s.db.Exec("UPDATE bins SET name = ? WHERE id = ? AND owner = ?;", newName, binID, userID)
+	_, err := s.db.Exec("UPDATE bins SET name = $1 WHERE id = $2 AND owner = $3;", newName, binID, userID)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (s *Store) UpdateBinName(binID int, userID int, newName string) error {
 }
 
 func (s *Store) GetBinsByUser(id int) ([]types.Bin, error) {
-	rows, err := s.db.Query("SELECT * FROM bins WHERE owner = ?;", id)
+	rows, err := s.db.Query("SELECT * FROM bins WHERE owner = $1;", id)
 	if err != nil {
 		return nil, err
 	}
@@ -62,12 +62,21 @@ func (s *Store) GetBinsByUser(id int) ([]types.Bin, error) {
 	return bins, nil
 }
 
-func (s *Store) CreateBin(name string, ownerID int) error {
-	_, err := s.db.Exec("INSERT INTO bins(name, owner) VALUES (?,?);", name, ownerID)
+func (s *Store) CreateBin(name string, ownerID int) (*types.Bin, error) {
+	var newBin types.Bin
+
+	err := s.db.QueryRow(`
+		INSERT INTO bins (name, owner)
+		VALUES ($1, $2)
+		RETURNING id, name, owner, createdAt;
+	`, name, ownerID).Scan(
+		&newBin.ID, &newBin.Name, &newBin.OwnerID, &newBin.CreatedAt,
+	)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return &newBin, nil
 }
 
 func scanRowsIntoBin(rows *sql.Rows) (*types.Bin, error) {

@@ -92,12 +92,12 @@ func (h *Handler) handleCreateBin(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload %v", errors))
 		return
 	}
-	err = h.store.CreateBin(payload.Name, user.ID)
+	bin, err := h.store.CreateBin(payload.Name, user.ID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	utils.WriteJSON(w, http.StatusCreated, nil)
+	utils.WriteJSON(w, http.StatusCreated, bin)
 }
 
 func (h *Handler) handleEditBin(w http.ResponseWriter, r *http.Request) {

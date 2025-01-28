@@ -6,6 +6,7 @@
 	import { Popup } from '$lib/components/popups/popup';
 	import { load } from '../+page';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { goto } from '$app/navigation';
 
 	let email = '';
 	let password = '';
@@ -42,7 +43,7 @@
 			} else {
 				let res = await resp.json();
 				token.set(res['token']);
-				window.location.replace('/');
+				goto('/');
 				Popup('Success', 'Logged in successfully');
 			}
 			loading = false;

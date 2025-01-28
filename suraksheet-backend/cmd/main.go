@@ -7,7 +7,7 @@ import (
 	"github.com/LikheKeto/Suraksheet/cmd/api"
 	"github.com/LikheKeto/Suraksheet/config"
 	"github.com/LikheKeto/Suraksheet/db"
-	"github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -18,14 +18,12 @@ func FatalIfErr(err error) {
 }
 
 func main() {
-	database := db.NewSQLStorage(mysql.Config{
-		User:                 config.Envs.DBUser,
-		Passwd:               config.Envs.DBPassword,
-		Addr:                 config.Envs.DBAddress,
-		DBName:               config.Envs.DBName,
-		Net:                  "tcp",
-		AllowNativePasswords: true,
-		ParseTime:            true,
+	database := db.NewSQLStorage(db.DBConfig{
+		User:     config.Envs.DBUser,
+		Host:     config.Envs.DBHost,
+		Port:     config.Envs.DBPort,
+		Password: config.Envs.DBPassword,
+		DBname:   config.Envs.DBName,
 	})
 	initStorage(database)
 	defer database.Close()

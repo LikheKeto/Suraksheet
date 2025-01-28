@@ -8,7 +8,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/LikheKeto/Suraksheet/service/auth"
 	"github.com/LikheKeto/Suraksheet/types"
@@ -151,7 +150,7 @@ func (h *Handler) handleInsertDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	docID, err := h.store.InsertDocument(types.Document{
+	document, err := h.store.InsertDocument(types.Document{
 		BinID:         binID,
 		Url:           "",
 		Name:          fileHeader.Filename,
@@ -168,21 +167,11 @@ func (h *Handler) handleInsertDocument(w http.ResponseWriter, r *http.Request) {
 		extension = parts[len(parts)-1]
 	}
 
-	err = utils.QueueForExtraction(h.rmqChan, h.rmq, docID, fileKey, extension)
+	err = utils.QueueForExtraction(h.rmqChan, h.rmq, int64(document.ID), fileKey, extension)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusCreated, fmt.Errorf("unable to queue for extraction: %v", err))
 	}
-
-	doc := types.Document{
-		ID:            int(docID),
-		Name:          fileHeader.Filename,
-		ReferenceName: referenceName,
-		BinID:         binID,
-		Url:           "",
-		Extract:       "",
-		CreatedAt:     time.Now(),
-	}
-	utils.WriteJSON(w, http.StatusCreated, doc)
+	utils.WriteJSON(w, http.StatusCreated, document)
 }
 
 func (h *Handler) handleEditDocument(w http.ResponseWriter, r *http.Request) {

@@ -18,17 +18,16 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) GetDocumentOwner(id int) (int, error) {
-	row := s.db.QueryRow("SELECT b.owner FROM documents d JOIN bins b ON d.bin = b.id WHERE d.id =?;", id)
+	row := s.db.QueryRow("SELECT b.owner FROM documents d JOIN bins b ON d.bin = b.id WHERE d.id = $1;", id)
 	var ownerID int
 	if err := row.Scan(&ownerID); err != nil {
 		return 0, err
 	}
 	return ownerID, nil
-
 }
 
 func (s *Store) GetDocumentsInBin(binID int) ([]types.Document, error) {
-	rows, err := s.db.Query("SELECT * FROM documents WHERE bin = ?;", binID)
+	rows, err := s.db.Query("SELECT * FROM documents WHERE bin = $1;", binID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +43,12 @@ func (s *Store) GetDocumentsInBin(binID int) ([]types.Document, error) {
 }
 
 func (s *Store) DeleteDocumentByID(id int) error {
-	_, err := s.db.Exec("DELETE FROM documents WHERE id = ?;", id)
+	_, err := s.db.Exec("DELETE FROM documents WHERE id = $1;", id)
 	return err
 }
 
 func (s *Store) ReferenceNameExistsInBin(name string, binID int) error {
-	row := s.db.QueryRow("SELECT id FROM documents WHERE bin = ? AND referenceName = ?;", binID, name)
+	row := s.db.QueryRow("SELECT id FROM documents WHERE bin = $1 AND referenceName = $2;", binID, name)
 	var id int
 	if err := row.Scan(&id); err != nil {
 		if err == sql.ErrNoRows {
@@ -61,7 +60,7 @@ func (s *Store) ReferenceNameExistsInBin(name string, binID int) error {
 }
 
 func (s *Store) GetDocumentByID(id int) (*types.Document, error) {
-	row := s.db.QueryRow("SELECT * FROM documents WHERE id = ?;", id)
+	row := s.db.QueryRow("SELECT * FROM documents WHERE id = $1;", id)
 	doc := new(types.Document)
 	if err := row.Scan(&doc.ID, &doc.Name, &doc.ReferenceName,
 		&doc.BinID, &doc.Url, &doc.Extract, &doc.CreatedAt); err != nil {
@@ -70,21 +69,27 @@ func (s *Store) GetDocumentByID(id int) (*types.Document, error) {
 	return doc, nil
 }
 
-func (s *Store) InsertDocument(doc types.Document) (int64, error) {
-	query := "INSERT INTO documents(name, referenceName, bin, url) VALUES (?,?,?,?)"
-	res, err := s.db.Exec(query, doc.Name, doc.ReferenceName, doc.BinID, doc.Url)
+func (s *Store) InsertDocument(doc types.Document) (*types.Document, error) {
+	var newDoc types.Document
+
+	query := `
+		INSERT INTO documents (name, referenceName, bin, url)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, name, referenceName, bin, url, extract, createdAt;
+	`
+	err := s.db.QueryRow(query, doc.Name, doc.ReferenceName, doc.BinID, doc.Url).Scan(
+		&newDoc.ID, &newDoc.Name, &newDoc.ReferenceName,
+		&newDoc.BinID, &newDoc.Url, &newDoc.Extract, &newDoc.CreatedAt,
+	)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	docId, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return docId, nil
+
+	return &newDoc, nil
 }
 
 func (s *Store) UpdateDocumentName(id int, name string) error {
-	_, err := s.db.Exec("UPDATE documents SET referenceName = ? WHERE id = ?;", name, id)
+	_, err := s.db.Exec("UPDATE documents SET referenceName = $1 WHERE id = $2;", name, id)
 	if err != nil {
 		return fmt.Errorf("unable to update document: %v", err)
 	}

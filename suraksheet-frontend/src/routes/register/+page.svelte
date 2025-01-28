@@ -4,6 +4,7 @@
 	import { PUBLIC_SERVER_URL } from '$env/static/public';
 	import { Popup } from '$lib/components/popups/popup';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { goto } from '$app/navigation';
 
 	let email = '';
 	let firstName = '';
@@ -44,7 +45,7 @@
 				Popup('Error', errorData.error, 10000);
 			} else {
 				Popup('Success', 'Account created successfully');
-				window.location.replace('/login');
+				goto('/login');
 			}
 			loading = false;
 		}

@@ -6,24 +6,21 @@ import (
 
 	"github.com/LikheKeto/Suraksheet/config"
 	"github.com/LikheKeto/Suraksheet/db"
-	"github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
-	mgsql "github.com/golang-migrate/migrate/v4/database/mysql"
+	pgsql "github.com/golang-migrate/migrate/v4/database/pgx"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 func main() {
-	db := db.NewSQLStorage(mysql.Config{
-		User:                 config.Envs.DBUser,
-		Passwd:               config.Envs.DBPassword,
-		Addr:                 config.Envs.DBAddress,
-		DBName:               config.Envs.DBName,
-		Net:                  "tcp",
-		AllowNativePasswords: true,
-		ParseTime:            true,
+	db := db.NewSQLStorage(db.DBConfig{
+		User:     config.Envs.DBUser,
+		Host:     config.Envs.DBHost,
+		Port:     config.Envs.DBPort,
+		Password: config.Envs.DBPassword,
+		DBname:   config.Envs.DBName,
 	})
 
-	driver, err := mgsql.WithInstance(db, &mgsql.Config{})
+	driver, err := pgsql.WithInstance(db, &pgsql.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
