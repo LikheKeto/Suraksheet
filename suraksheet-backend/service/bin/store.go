@@ -18,6 +18,15 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) DeleteBin(binID int, userID int) error {
+	rows := s.db.QueryRow("SELECT name FROM bins WHERE id = $1 AND owner = $2;", binID, userID)
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	var name string
+	rows.Scan(&name)
+	if name == "No Bin" {
+		return fmt.Errorf("the default bin cannot be deleted")
+	}
 	_, err := s.db.Exec("DELETE FROM bins WHERE id = $1 AND owner = $2;", binID, userID)
 	if err != nil {
 		return err
@@ -38,6 +47,15 @@ func (s *Store) GetBinById(binID int) (*types.Bin, error) {
 }
 
 func (s *Store) UpdateBinName(binID int, userID int, newName string) error {
+	rows := s.db.QueryRow("SELECT name FROM bins WHERE id = $1 AND owner = $2;", binID, userID)
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	var name string
+	rows.Scan(&name)
+	if name == "No Bin" {
+		return fmt.Errorf("the default bin cannot be edited")
+	}
 	_, err := s.db.Exec("UPDATE bins SET name = $1 WHERE id = $2 AND owner = $3;", newName, binID, userID)
 	if err != nil {
 		return err

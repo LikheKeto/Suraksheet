@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { PUBLIC_SERVER_URL } from '$env/static/public';
-	import { binsStore, token } from '$lib/store';
+	import { binsStore, documentsStore, token } from '$lib/store';
 	import { Drawer, CloseButton, Label, Input, Select, Fileupload, Helper } from 'flowbite-svelte';
 	import { InfoCircleSolid, CalendarEditSolid } from 'flowbite-svelte-icons';
 	import { sineIn } from 'svelte/easing';
 	import Button from '../ui/Button.svelte';
+	import { Popup } from '../popups/popup';
 
 	export let hidden = true;
 	export let binID: number | undefined = undefined;
@@ -32,6 +33,7 @@
 	let name = '';
 	let selectedBin = binID?.toString() || '';
 	let files: FileList | undefined;
+	let language = 'eng';
 
 	async function handleCreateDocument() {
 		loading = true;
@@ -46,6 +48,7 @@
 			formData.append('referenceName', name);
 			formData.append('binID', selectedBin.toString());
 			formData.append('file', file);
+			formData.append('language', language);
 
 			let res = await fetch(PUBLIC_SERVER_URL + '/document', {
 				method: 'POST',
@@ -59,9 +62,21 @@
 				loading = false;
 				return;
 			}
+			let createdDocument = await res.json();
 			error = '';
+			let bin = bins.find((b) => b.value === selectedBin);
+			if (bin) {
+				documentsStore.update((docs) => {
+					docs[bin.name].push(createdDocument);
+					return docs;
+				});
+			}
+			Popup('Success', 'Document created successfully');
+			hidden = true;
+			name = '';
+			selectedBin = binID?.toString() || '';
+			files = undefined;
 			loading = false;
-			window.location.reload();
 		}
 	}
 </script>
@@ -95,6 +110,20 @@
 			<Label>
 				Bin
 				<Select required class="mt-2" items={bins} bind:value={selectedBin} />
+			</Label>
+		</div>
+		<div class="mb-6">
+			<Label>
+				Language
+				<Select
+					required
+					class="mt-2"
+					items={[
+						{ name: 'English', value: 'eng' },
+						{ name: 'Nepali', value: 'nep' }
+					]}
+					bind:value={language}
+				/>
 			</Label>
 		</div>
 		<Button bind:loading loadingText="Creating document..." type="submit" class="w-full">

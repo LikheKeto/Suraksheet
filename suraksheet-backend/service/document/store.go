@@ -63,7 +63,7 @@ func (s *Store) GetDocumentByID(id int) (*types.Document, error) {
 	row := s.db.QueryRow("SELECT * FROM documents WHERE id = $1;", id)
 	doc := new(types.Document)
 	if err := row.Scan(&doc.ID, &doc.Name, &doc.ReferenceName,
-		&doc.BinID, &doc.Url, &doc.Extract, &doc.CreatedAt); err != nil {
+		&doc.BinID, &doc.Url, &doc.Extract, &doc.CreatedAt, &doc.Language); err != nil {
 		return nil, err
 	}
 	return doc, nil
@@ -73,13 +73,13 @@ func (s *Store) InsertDocument(doc types.Document) (*types.Document, error) {
 	var newDoc types.Document
 
 	query := `
-		INSERT INTO documents (name, referenceName, bin, url)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, name, referenceName, bin, url, extract, createdAt;
+		INSERT INTO documents (name, referenceName, bin, url, language)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, name, referenceName, bin, url, extract, createdAt, language;
 	`
-	err := s.db.QueryRow(query, doc.Name, doc.ReferenceName, doc.BinID, doc.Url).Scan(
+	err := s.db.QueryRow(query, doc.Name, doc.ReferenceName, doc.BinID, doc.Url, doc.Language).Scan(
 		&newDoc.ID, &newDoc.Name, &newDoc.ReferenceName,
-		&newDoc.BinID, &newDoc.Url, &newDoc.Extract, &newDoc.CreatedAt,
+		&newDoc.BinID, &newDoc.Url, &newDoc.Extract, &newDoc.CreatedAt, &newDoc.Language,
 	)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (s *Store) UpdateDocumentName(id int, name string) error {
 func scanRowsIntoDocument(rows *sql.Rows) (*types.Document, error) {
 	doc := new(types.Document)
 	err := rows.Scan(&doc.ID, &doc.Name, &doc.ReferenceName,
-		&doc.BinID, &doc.Url, &doc.Extract, &doc.CreatedAt)
+		&doc.BinID, &doc.Url, &doc.Extract, &doc.CreatedAt, &doc.Language)
 	if err != nil {
 		return nil, err
 	}

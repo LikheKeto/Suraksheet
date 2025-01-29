@@ -9,6 +9,7 @@ ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
+    tesseract-ocr-nep \ 
     libgl1-mesa-glx \
     zlib1g-dev \
     && apt-get clean \

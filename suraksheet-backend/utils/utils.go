@@ -16,7 +16,7 @@ import (
 
 var Validate = validator.New()
 
-func QueueForExtraction(ch *amqp.Channel, q amqp.Queue, docID int64, fileKey string, extension string) error {
+func QueueForExtraction(ch *amqp.Channel, q amqp.Queue, docID int64, fileKey string, extension string, language string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -25,6 +25,7 @@ func QueueForExtraction(ch *amqp.Channel, q amqp.Queue, docID int64, fileKey str
 		"fileKey":    fileKey,
 		"bucket":     config.Envs.MinioBucketName,
 		"extension":  extension,
+		"language":   language,
 	})
 	if err != nil {
 		return err

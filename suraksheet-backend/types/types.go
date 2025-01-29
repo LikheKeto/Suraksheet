@@ -52,6 +52,7 @@ type Document struct {
 	Url           string    `json:"url"`
 	Extract       string    `json:"extract"`
 	CreatedAt     time.Time `json:"createdAt"`
+	Language      string    `json:"language"`
 }
 
 type RegisterUserPayload struct {

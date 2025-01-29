@@ -19,6 +19,7 @@
 	import { deleteDocument } from '$lib/crud';
 	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/Button.svelte';
+	import { Popup } from '$lib/components/popups/popup';
 
 	export let data: {
 		error?: string;
@@ -72,6 +73,7 @@
 			try {
 				await deleteDocument(doc);
 				goto('/bin/' + doc.bin);
+				Popup('Success', 'Document deleted successfully');
 			} catch (e) {
 				console.log(e);
 			} finally {
@@ -95,7 +97,7 @@
 	</Breadcrumb>
 	<p class="pb-4 text-2xl font-bold">{doc?.referenceName}</p>
 	<div class="flex flex-wrap gap-4">
-		{#if doc.url !== null}
+		{#if doc.url}
 			<img src={doc.url} alt={doc.name} class="w-2xl max-h-96 object-contain" />
 		{:else}
 			<ImagePlaceholder imgOnly class="m-auto mt-8 w-full" />

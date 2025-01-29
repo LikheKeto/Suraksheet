@@ -10,7 +10,8 @@
 		FloppyDiskAltOutline,
 		FileImageOutline,
 		FilePdfSolid,
-		BookOpenOutline
+		BookOpenOutline,
+		LanguageOutline
 	} from 'flowbite-svelte-icons';
 
 	export let doc: Document;
@@ -46,6 +47,17 @@
 				<a class="underline" href={'/bin/' + bin?.id}>
 					{bin?.name}
 				</a>
+			</TableBodyCell>
+		</TableBodyRow>
+		<TableBodyRow>
+			<TableBodyCell class="flex items-center gap-1"
+				><LanguageOutline
+					class="text-primary-600 dark:text-primary-300"
+					size="sm"
+				/>Lanuage</TableBodyCell
+			>
+			<TableBodyCell>
+				{doc.language === 'eng' ? 'English' : 'Nepali'}
 			</TableBodyCell>
 		</TableBodyRow>
 		<TableBodyRow>

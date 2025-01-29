@@ -23,6 +23,8 @@
 	} from 'flowbite-svelte-icons';
 	import { sineIn } from 'svelte/easing';
 	import { goto } from '$app/navigation';
+	import { fade, fly, slide } from 'svelte/transition';
+	import { tweened } from 'svelte/motion';
 
 	function goBack() {
 		window.history.back(); // Use browser history to go back
@@ -69,13 +71,13 @@
 
 	{#if !isHomePage}
 		<button
+			transition:fly={{ x: -100, duration: 500 }}
 			id="goback"
 			class="rounded-lg p-2 text-xl text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
 			on:click={goBack}
 		>
 			<CaretLeftOutline size="xl" />
 		</button>
-		<Tooltip type="auto" triggeredBy="#goback" placement="right">Go Back</Tooltip>
 	{/if}
 </div>
 <Drawer

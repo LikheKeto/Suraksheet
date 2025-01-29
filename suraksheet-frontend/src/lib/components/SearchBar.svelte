@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Input, Modal, Kbd } from 'flowbite-svelte';
-	import { BackwardStepOutline, SearchOutline } from 'flowbite-svelte-icons';
+	import { SearchOutline } from 'flowbite-svelte-icons';
 
 	let isOpen = false;
 	let searchQuery = '';
-	let searchInput: Input;
+	let searchInput: HTMLInputElement;
 
 	const handleKeydown = (event: KeyboardEvent) => {
 		if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
@@ -29,12 +29,11 @@
 
 	const performSearch = () => {
 		console.log('Searching for:', searchQuery);
+		searchQuery = '';
 		closeModal();
 	};
 
-	$: if (isOpen && searchInput) {
-		searchInput.$$?.root?.children[5]?.childNodes[0]?.childNodes[0]?.childNodes[1]?.childNodes[3]?.childNodes[0]?.childNodes[3]?.focus();
-	}
+	$: isOpen && searchInput && searchInput.focus();
 </script>
 
 <div class="container relative m-auto mt-20 max-w-lg gap-2 px-4 sm:mt-8">
@@ -56,10 +55,10 @@
 			<div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
 				<SearchOutline class="h-4 w-4" />
 			</div>
-			<Input
-				bind:this={searchInput}
+			<input
 				type="text"
-				class="ps-10"
+				bind:this={searchInput}
+				class="border-1 focus:ring-primary-500 w-full rounded-md border-gray-500 bg-gray-600 ps-10 text-gray-300 placeholder:text-gray-400 focus:ring-2"
 				bind:value={searchQuery}
 				placeholder="Search..."
 				on:keydown={(e) => {

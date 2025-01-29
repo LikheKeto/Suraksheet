@@ -8,23 +8,26 @@
 	export let bin = 'No Bin';
 
 	let docs: Document[] = [];
-	documentsStore.subscribe((values) => (docs = values[bin]));
+	documentsStore.subscribe(async (values) => (docs = await hydrateImages(values[bin])));
 
-	async function fetchImages() {
-		const updatedDocs = await Promise.all(
-			docs.map(async (doc) => {
-				try {
-					let { url } = await getAsset(doc.id);
-					doc.url = url;
-				} catch (e) {
-					console.log(e);
-				}
-				return doc;
-			})
-		);
-		docs = updatedDocs;
+	async function hydrateImages(docs: Document[]) {
+		if (docs && docs.length >= 1) {
+			const updatedDocs = await Promise.all(
+				docs.map(async (doc) => {
+					try {
+						let { url } = await getAsset(doc.id);
+						doc.url = url;
+					} catch (e) {
+						console.log(e);
+					}
+					return doc;
+				})
+			);
+			return updatedDocs;
+		} else {
+			return [];
+		}
 	}
-	onMount(fetchImages);
 </script>
 
 <div

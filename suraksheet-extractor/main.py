@@ -98,6 +98,7 @@ def process_message(ch, method, properties, body):
     file_key = message["fileKey"]
     bucket_name = message["bucket"]
     extension = message["extension"]
+    language = message['language']
 
     file_path = f"/tmp/{os.path.basename(file_key)}.{extension}"
 
@@ -128,7 +129,7 @@ def process_message(ch, method, properties, body):
     # Perform OCR on the preprocessed image
     try:
         text = pytesseract.image_to_string(
-            Image.open(preprocessed_path), lang="eng")
+            Image.open(preprocessed_path), lang=language or 'eng')
         logger.info(f"OCR Result: {text}")
     except Exception as e:
         logger.error(f"Failed to perform OCR: {e}")

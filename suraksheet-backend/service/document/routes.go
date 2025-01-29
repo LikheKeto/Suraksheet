@@ -124,6 +124,12 @@ func (h *Handler) handleInsertDocument(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20)
 	referenceName := r.Form.Get("referenceName")
 	binIDStr := r.Form.Get("binID")
+	language := r.Form.Get("language")
+
+	if !(language == "eng" || language == "nep") {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("language not supported"))
+		return
+	}
 
 	binID, err := strconv.Atoi(binIDStr)
 	if err != nil {
@@ -155,6 +161,7 @@ func (h *Handler) handleInsertDocument(w http.ResponseWriter, r *http.Request) {
 		Url:           "",
 		Name:          fileHeader.Filename,
 		ReferenceName: referenceName,
+		Language:      language,
 	})
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("unable to insert document: %v", err))
@@ -167,7 +174,7 @@ func (h *Handler) handleInsertDocument(w http.ResponseWriter, r *http.Request) {
 		extension = parts[len(parts)-1]
 	}
 
-	err = utils.QueueForExtraction(h.rmqChan, h.rmq, int64(document.ID), fileKey, extension)
+	err = utils.QueueForExtraction(h.rmqChan, h.rmq, int64(document.ID), fileKey, extension, language)
 	if err != nil {
 		utils.WriteJSON(w, http.StatusCreated, fmt.Errorf("unable to queue for extraction: %v", err))
 	}

@@ -6,6 +6,7 @@
 	import { Drawer, Button, CloseButton, Label, Input, Textarea, Helper, P } from 'flowbite-svelte';
 	import { InfoCircleSolid, UserAddOutline, CalendarEditSolid } from 'flowbite-svelte-icons';
 	import { sineIn } from 'svelte/easing';
+	import { Popup } from '../popups/popup';
 
 	export let hidden = true;
 	export let editingBin: Bin | undefined = undefined; // Prop for the bin being edited
@@ -48,8 +49,12 @@
 					const updatedBin: Bin = { ...editingBin, name: binName };
 					return bins.map((b) => (b.id === editingBin.id ? updatedBin : b));
 				});
+				Popup('Success', 'Bin updated successfully');
 			} else {
-				window.location.reload();
+				let newBin = await resp.json();
+				binsStore.update((bins) => [...bins, newBin]);
+				binName = '';
+				Popup('Success', 'Bin created successfully');
 			}
 			hidden = true;
 		}

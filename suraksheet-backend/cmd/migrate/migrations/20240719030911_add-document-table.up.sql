@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS documents (
     url TEXT NOT NULL,
     extract VARCHAR(1000) NOT NULL DEFAULT '',
     createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    language VARCHAR(3) NOT NULL DEFAULT 'eng',
 
     FOREIGN KEY (bin) REFERENCES bins(id) ON DELETE CASCADE,
     UNIQUE(referenceName, bin)

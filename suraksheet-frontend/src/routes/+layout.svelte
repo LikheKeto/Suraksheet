@@ -5,15 +5,17 @@
 	import ToastRenderer from '$lib/components/popups/ToastRenderer.svelte';
 	import SearchBar from '$lib/components/SearchBar.svelte';
 	import Tooltips from '$lib/components/ui/Tooltips.svelte';
+	import { token } from '$lib/store';
 	import { onMount } from 'svelte';
 
 	let loggedIn = false;
-
 	onMount(() => {
-		let token = localStorage.getItem('token');
-		if (token) {
+		if (localStorage.getItem('token')) {
 			loggedIn = true;
 		}
+	});
+	token.subscribe((tok) => {
+		loggedIn = tok.length > 5;
 	});
 </script>
 
@@ -25,7 +27,13 @@
 	<SideNav />
 	<SearchBar />
 {:else}
-	<div class="mt-12"></div>
+	<div
+		class="container m-auto my-8 flex items-end justify-center text-3xl font-bold text-gray-800 dark:text-gray-200"
+	>
+		<img src="/favicon.png" class="w-12" alt="suraksheet" />
+		Suraksheet
+	</div>
+	<!-- <hr class="container m-auto mt-4 border-2 border-gray-500" /> -->
 {/if}
 <Tooltips />
 <ToastRenderer position="top-left" />
