@@ -21,7 +21,8 @@ type Config struct {
 	MinioSecretKey  string
 	MinioBucketName string
 
-	RabbitMQUrl string
+	RabbitMQUrl      string
+	ElasticsearchUrl string
 }
 
 var Envs = initConfig()
@@ -32,19 +33,20 @@ func initConfig() Config {
 		panic(err)
 	}
 	return Config{
-		PublicHost:      getEnv("SERVER_PUBLIC_HOST", "http://localhost"),
-		Port:            getEnv("SERVER_PORT", ":8080"),
-		JWTSecret:       getEnv("SERVER_JWT_SECRET", ""),
-		DBUser:          getEnv("POSTGRES_USER", "root"),
-		DBPassword:      getEnv("POSTGRES_PASSWORD", "mypassword"),
-		DBHost:          getEnv("POSTGRES_HOST", "127.0.0.1"),
-		DBPort:          port,
-		DBName:          getEnv("POSTGRES_DATABASE", "suraksheet"),
-		MinioURL:        getEnv("MINIO_ENDPOINT", "127.0.0.1:9000"),
-		MinioAccessKey:  getEnv("MINIO_ACCESS_KEY", ""),
-		MinioSecretKey:  getEnv("MINIO_SECRET_KEY", ""),
-		MinioBucketName: getEnv("MINIO_BUCKET_NAME", "suraksheet"),
-		RabbitMQUrl:     getEnv("RABBITMQ_URL", "localhost"),
+		PublicHost:       getEnv("SERVER_PUBLIC_HOST", "http://localhost"),
+		Port:             getEnv("SERVER_PORT", ":8080"),
+		JWTSecret:        getEnv("SERVER_JWT_SECRET", ""),
+		DBUser:           getEnv("POSTGRES_USER", "root"),
+		DBPassword:       getEnv("POSTGRES_PASSWORD", "mypassword"),
+		DBHost:           getEnv("POSTGRES_HOST", "127.0.0.1"),
+		DBPort:           port,
+		DBName:           getEnv("POSTGRES_DATABASE", "suraksheet"),
+		MinioURL:         getEnv("MINIO_ENDPOINT", "127.0.0.1:9000"),
+		MinioAccessKey:   getEnv("MINIO_ACCESS_KEY", ""),
+		MinioSecretKey:   getEnv("MINIO_SECRET_KEY", ""),
+		MinioBucketName:  getEnv("MINIO_BUCKET_NAME", "suraksheet"),
+		RabbitMQUrl:      getEnv("RABBITMQ_URL", "localhost"),
+		ElasticsearchUrl: getEnv("ELASTICSEARCH_URL", "localhost"),
 	}
 }
 

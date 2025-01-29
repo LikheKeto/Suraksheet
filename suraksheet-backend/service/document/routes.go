@@ -1,6 +1,9 @@
 package document
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -12,6 +15,7 @@ import (
 	"github.com/LikheKeto/Suraksheet/service/auth"
 	"github.com/LikheKeto/Suraksheet/types"
 	"github.com/LikheKeto/Suraksheet/utils"
+	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"github.com/minio/minio-go/v7"
@@ -25,11 +29,12 @@ type Handler struct {
 	minio     *minio.Client
 	rmqChan   *amqp.Channel
 	rmq       amqp.Queue
+	esClient  *elasticsearch.Client
 }
 
 func NewHandler(documentStore types.DocumentStore,
 	userStore types.UserStore, binStore types.BinStore,
-	minio *minio.Client, rmqChan *amqp.Channel, rmq amqp.Queue) *Handler {
+	minio *minio.Client, rmqChan *amqp.Channel, rmq amqp.Queue, esClient *elasticsearch.Client) *Handler {
 	return &Handler{
 		store:     documentStore,
 		userStore: userStore,
@@ -37,6 +42,7 @@ func NewHandler(documentStore types.DocumentStore,
 		minio:     minio,
 		rmqChan:   rmqChan,
 		rmq:       rmq,
+		esClient:  esClient,
 	}
 }
 
@@ -46,6 +52,7 @@ func (h *Handler) RegisterRoutes(router chi.Router) {
 	router.MethodFunc(http.MethodPost, "/document", auth.WithJWTAuth(h.handleInsertDocument, h.userStore))
 	router.MethodFunc(http.MethodPatch, "/document", auth.WithJWTAuth(h.handleEditDocument, h.userStore))
 	router.MethodFunc(http.MethodDelete, "/document", auth.WithJWTAuth(h.handleDeleteDocument, h.userStore))
+	router.MethodFunc(http.MethodGet, "/document/search", auth.WithJWTAuth(h.handleSearchDocuments, h.userStore))
 }
 
 func (h *Handler) handleGetImage(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +181,13 @@ func (h *Handler) handleInsertDocument(w http.ResponseWriter, r *http.Request) {
 		extension = parts[len(parts)-1]
 	}
 
-	err = utils.QueueForExtraction(h.rmqChan, h.rmq, int64(document.ID), fileKey, extension, language)
+	err = utils.QueueForExtraction(h.rmqChan, h.rmq, utils.ExtractionArgs{
+		DocID:     document.ID,
+		UserID:    user.ID,
+		FileKey:   fileKey,
+		Extension: extension,
+		Language:  language,
+	})
 	if err != nil {
 		utils.WriteJSON(w, http.StatusCreated, fmt.Errorf("unable to queue for extraction: %v", err))
 	}
@@ -286,4 +299,90 @@ func (h *Handler) handleDeleteDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJSON(w, http.StatusNoContent, nil)
+}
+
+func (h *Handler) handleSearchDocuments(w http.ResponseWriter, r *http.Request) {
+	user, err := auth.ExtractUserFromContext(r)
+	if err != nil {
+		utils.WriteError(w, http.StatusForbidden, err)
+		return
+	}
+
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("query parameter 'q' is required"))
+		return
+	}
+
+	searchQuery := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					{"match": map[string]interface{}{"text": query}},
+				},
+				"filter": []map[string]interface{}{
+					{"term": map[string]interface{}{"user_id": user.ID}},
+				},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(searchQuery); err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("failed to encode search query: %v", err))
+		return
+	}
+
+	res, err := h.esClient.Search(
+		h.esClient.Search.WithContext(context.Background()),
+		h.esClient.Search.WithIndex("documents"),
+		h.esClient.Search.WithBody(&buf),
+		h.esClient.Search.WithPretty(),
+	)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("search query failed: %v", err))
+		return
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		utils.WriteError(w, res.StatusCode, fmt.Errorf("error from elasticsearch"))
+		return
+	}
+
+	var esRes map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&esRes); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Extract document IDs from Elasticsearch response
+	var docIDs []int
+	if hits, ok := esRes["hits"].(map[string]interface{})["hits"].([]interface{}); ok {
+		for i, hit := range hits {
+			if i > 3 {
+				break
+			}
+			if hitMap, ok := hit.(map[string]interface{}); ok {
+				if source, ok := hitMap["_source"].(map[string]interface{}); ok {
+					if docID, ok := source["document_id"].(float64); ok {
+						docIDs = append(docIDs, int(docID))
+					}
+				}
+			}
+		}
+	}
+
+	if len(docIDs) == 0 {
+		json.NewEncoder(w).Encode([]interface{}{})
+		return
+	}
+
+	documents, err := h.store.FetchDocumentsFromDB(docIDs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(documents)
 }

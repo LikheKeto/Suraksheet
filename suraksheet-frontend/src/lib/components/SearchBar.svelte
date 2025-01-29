@@ -1,15 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Input, Modal, Kbd } from 'flowbite-svelte';
+	import { Input, Modal, Kbd, Card, Tooltip, ImagePlaceholder } from 'flowbite-svelte';
 	import { SearchOutline } from 'flowbite-svelte-icons';
+	import { PUBLIC_SERVER_URL } from '$env/static/public';
+	import { token } from '$lib/store';
+	import { hydrateImages } from '$lib';
+	import type { Document } from '$lib/types';
 
 	let isOpen = false;
 	let searchQuery = '';
 	let searchInput: HTMLInputElement;
+	let searchResults: Document[] = [];
+	let isLoading = false;
+	let hasSearched = false;
+	let error = '';
 
 	const handleKeydown = (event: KeyboardEvent) => {
 		if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-			event.preventDefault(); // Prevent browser's default search behavior
+			event.preventDefault();
 			isOpen = !isOpen;
 		}
 		if (event.key === 'Escape') {
@@ -19,18 +27,32 @@
 
 	onMount(() => {
 		window.addEventListener('keydown', handleKeydown);
-
 		return () => window.removeEventListener('keydown', handleKeydown);
 	});
 
-	const closeModal = () => {
-		isOpen = false;
-	};
-
-	const performSearch = () => {
-		console.log('Searching for:', searchQuery);
-		searchQuery = '';
-		closeModal();
+	const performSearch = async () => {
+		if (!searchQuery.trim()) return;
+		isLoading = true;
+		error = '';
+		hasSearched = true;
+		try {
+			const response = await fetch(
+				`${PUBLIC_SERVER_URL}/document/search?q=${encodeURIComponent(searchQuery)}`,
+				{
+					headers: {
+						Authorization: `Bearer ${$token}`
+					}
+				}
+			);
+			if (!response.ok) throw new Error('Failed to fetch search results');
+			const data = await response.json();
+			searchResults = data;
+			searchResults = await hydrateImages(searchResults);
+		} catch (err: any) {
+			error = err['error'] || 'search failed';
+		} finally {
+			isLoading = false;
+		}
 	};
 
 	$: isOpen && searchInput && searchInput.focus();
@@ -61,17 +83,46 @@
 				class="border-1 focus:ring-primary-500 w-full rounded-md border-gray-500 bg-gray-600 ps-10 text-gray-300 placeholder:text-gray-400 focus:ring-2"
 				bind:value={searchQuery}
 				placeholder="Search..."
-				on:keydown={(e) => {
-					e.key === 'Enter' && performSearch();
-				}}
+				on:keydown={(e) => e.key === 'Enter' && performSearch()}
 			/>
 		</div>
 		<div class="text-sm text-gray-500 dark:text-gray-400">
 			Press <Kbd class="px-2 py-1.5">Enter</Kbd> to search or <Kbd class="px-2 py-1.5">Esc</Kbd> to close.
 		</div>
 		<hr class="border-slate-500" />
-		<div>
-			<h2>Recent</h2>
-		</div>
+
+		{#if isLoading}
+			<p class="text-gray-400">Loading...</p>
+		{:else if error}
+			<p class="text-red-500">{error}</p>
+		{:else if searchResults.length === 0 && hasSearched}
+			<p class="text-gray-400">No results found.</p>
+		{:else}
+			<div
+				class="flex w-full flex-wrap gap-2 rounded-md bg-gray-100 bg-opacity-50 dark:bg-gray-800"
+			>
+				{#each searchResults as doc, id}
+					<Card
+						on:click={() => {
+							isOpen = false;
+						}}
+						href={'/document/' + doc.id}
+						class="flex h-24 w-full cursor-pointer flex-row items-center justify-between gap-2 rounded-md p-4 shadow-md transition duration-300 ease-in-out sm:h-32 sm:w-32 sm:flex-col sm:justify-center sm:gap-0 sm:p-0"
+					>
+						{#if doc.url}
+							<img src={doc.url} alt={doc.name} class="h-20 w-24 object-contain" />
+						{:else}
+							<ImagePlaceholder imgOnly class="w-24" imgHeight="16" />
+						{/if}
+						<p
+							id={`doc-${id}`}
+							class="mt-2 w-36 truncate text-ellipsis text-right text-sm text-gray-700 sm:w-32 sm:text-center dark:text-gray-300"
+						>
+							{doc.referenceName}
+						</p>
+					</Card>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </Modal>

@@ -2,40 +2,18 @@
 	import { documentsStore, loadingDocuments, token } from '$lib/store';
 	import type { Document } from '$lib/types';
 	import { Card, ImagePlaceholder, Skeleton, Tooltip } from 'flowbite-svelte';
-	import { onMount } from 'svelte';
-	import { getAsset } from '$lib/index';
+	import { hydrateImages } from '$lib/index';
 
 	export let bin = 'No Bin';
 
 	let docs: Document[] = [];
 	documentsStore.subscribe(async (values) => (docs = await hydrateImages(values[bin])));
-
-	async function hydrateImages(docs: Document[]) {
-		if (docs && docs.length >= 1) {
-			const updatedDocs = await Promise.all(
-				docs.map(async (doc) => {
-					try {
-						let { url } = await getAsset(doc.id);
-						doc.url = url;
-					} catch (e) {
-						console.log(e);
-					}
-					return doc;
-				})
-			);
-			return updatedDocs;
-		} else {
-			return [];
-		}
-	}
 </script>
 
 <div
 	class="my-2 flex w-full flex-wrap gap-2 rounded-md bg-gray-100 bg-opacity-50 p-4 dark:bg-gray-800"
 >
-	{#if $loadingDocuments}
-		<Skeleton divClass="animate-pulse w-full text-primary-500" size="lg" />
-	{:else if docs.length > 0}
+	{#if docs.length > 0}
 		{#each docs as doc, id}
 			<Card
 				href={'/document/' + doc.id}
@@ -57,6 +35,8 @@
 				</p>
 			</Card>
 		{/each}
+	{:else if loadingDocuments}
+		<Skeleton divClass="animate-pulse w-full text-primary-500" size="lg" />
 	{:else}
 		<div class="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-md">
 			<p class="text-gray-400">You have no documents</p>

@@ -1,4 +1,28 @@
 services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - suraksheet-network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.17.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: ${ELASTICSEARCH_URL}
+    depends_on:
+      - elasticsearch
+    networks:
+      - suraksheet-network
+
   postgres:
     image: postgres:13-alpine
     container_name: postgres
@@ -65,11 +89,13 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL}
     depends_on:
       - postgres
       - rabbitmq
       - minio
       - extractor
+      - elasticsearch
     ports:
       - "8080:8080"
     networks:
@@ -91,6 +117,7 @@ services:
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL}
     depends_on:
       minio:
         condition: service_healthy

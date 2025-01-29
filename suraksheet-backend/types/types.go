@@ -26,6 +26,7 @@ type DocumentStore interface {
 	DeleteDocumentByID(id int) error
 	GetDocumentsInBin(binID int) ([]Document, error)
 	GetDocumentOwner(id int) (int, error)
+	FetchDocumentsFromDB(docIDs []int) ([]*Document, error)
 }
 
 type User struct {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/LikheKeto/Suraksheet/types"
+	"github.com/lib/pq"
 )
 
 type Store struct {
@@ -94,6 +95,27 @@ func (s *Store) UpdateDocumentName(id int, name string) error {
 		return fmt.Errorf("unable to update document: %v", err)
 	}
 	return nil
+}
+
+func (s *Store) FetchDocumentsFromDB(docIDs []int) ([]*types.Document, error) {
+	var documents []*types.Document
+
+	query := "SELECT * FROM documents WHERE id = ANY($1)"
+	rows, err := s.db.Query(query, pq.Array(docIDs))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		doc, err := scanRowsIntoDocument(rows)
+		if err != nil {
+			return nil, err
+		}
+		documents = append(documents, doc)
+	}
+
+	return documents, nil
 }
 
 func scanRowsIntoDocument(rows *sql.Rows) (*types.Document, error) {

@@ -5,6 +5,7 @@ import type { Bin, Document } from './types';
 function deletionError(str: string) {
 	return 'Unable to delete: ' + str;
 }
+
 export async function deleteDocument(doc: Document) {
 	if (!doc || !doc.id) {
 		throw deletionError('Invalid document');

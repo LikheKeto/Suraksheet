@@ -16,16 +16,25 @@ import (
 
 var Validate = validator.New()
 
-func QueueForExtraction(ch *amqp.Channel, q amqp.Queue, docID int64, fileKey string, extension string, language string) error {
+type ExtractionArgs struct {
+	DocID     int    `json:"documentID"`
+	UserID    int    `json:"userID"`
+	FileKey   string `json:"fileKey"`
+	Extension string `json:"extension"`
+	Language  string `json:"language"`
+}
+
+func QueueForExtraction(ch *amqp.Channel, q amqp.Queue, args ExtractionArgs) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	jsonb, err := json.Marshal(map[string]any{
-		"documentID": docID,
-		"fileKey":    fileKey,
+		"documentID": args.DocID,
+		"fileKey":    args.FileKey,
 		"bucket":     config.Envs.MinioBucketName,
-		"extension":  extension,
-		"language":   language,
+		"extension":  args.Extension,
+		"language":   args.Language,
+		"userID":     args.UserID,
 	})
 	if err != nil {
 		return err

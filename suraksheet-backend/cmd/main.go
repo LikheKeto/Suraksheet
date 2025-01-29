@@ -7,6 +7,7 @@ import (
 	"github.com/LikheKeto/Suraksheet/cmd/api"
 	"github.com/LikheKeto/Suraksheet/config"
 	"github.com/LikheKeto/Suraksheet/db"
+	"github.com/elastic/go-elasticsearch/v8"
 	_ "github.com/lib/pq"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -18,6 +19,7 @@ func FatalIfErr(err error) {
 }
 
 func main() {
+	// database
 	database := db.NewSQLStorage(db.DBConfig{
 		User:     config.Envs.DBUser,
 		Host:     config.Envs.DBHost,
@@ -28,8 +30,10 @@ func main() {
 	initStorage(database)
 	defer database.Close()
 
+	// minio
 	minioClient := db.NewMinioClient()
 
+	// rabbitmq
 	rmqConn, err := amqp.Dial(config.Envs.RabbitMQUrl)
 	FatalIfErr(err)
 	defer rmqConn.Close()
@@ -48,7 +52,15 @@ func main() {
 	)
 	FatalIfErr(err)
 
-	server := api.NewAPIServer(config.Envs.Port, database, minioClient, ch, q)
+	// elasticsearch
+	esClient, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{
+			config.Envs.ElasticsearchUrl,
+		},
+	})
+	FatalIfErr(err)
+
+	server := api.NewAPIServer(config.Envs.Port, database, minioClient, ch, q, esClient)
 	if err := server.Run(); err != nil {
 		log.Fatal(err)
 	}

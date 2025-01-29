@@ -3,13 +3,16 @@ import re
 import signal
 import pika
 import json
-import psycopg2  # Changed from pymysql to psycopg2
+import psycopg2
 from minio import Minio
 import pytesseract
 from PIL import Image
 import logging
 import cv2
 import numpy as np
+from elasticsearch import Elasticsearch
+
+es = Elasticsearch(os.getenv("ELASTICSEARCH_URL"))
 
 
 def clean_text(text):
@@ -79,14 +82,24 @@ def upload_image_to_minio(client, bucket_name, object_name, file_path):
     client.fput_object(bucket_name, object_name, file_path)
 
 
-def update_postgres(conn, doc_id, ocr_text):
+def update_postgres_and_elasticsearch(conn, doc_id, ocr_text, user_id):
     try:
         with conn.cursor() as cursor:
             sql = "UPDATE documents SET extract=%s WHERE id=%s"
             cursor.execute(sql, (ocr_text, doc_id))
         conn.commit()
+
+        # Indexing in Elasticsearch
+        es.index(index="documents", id=doc_id, body={
+            "document_id": doc_id,
+            "user_id": user_id,
+            "text": ocr_text
+        })
+
+        logger.info(f"Indexed document {doc_id} in Elasticsearch")
+
     except Exception as e:
-        logger.error(f"Failed to update PostgreSQL: {e}")
+        logger.error(f"Failed to update PostgreSQL or Elasticsearch: {e}")
 
 
 def process_message(ch, method, properties, body):
@@ -99,6 +112,7 @@ def process_message(ch, method, properties, body):
     bucket_name = message["bucket"]
     extension = message["extension"]
     language = message['language']
+    user_id = message['userID']
 
     file_path = f"/tmp/{os.path.basename(file_key)}.{extension}"
 
@@ -143,7 +157,8 @@ def process_message(ch, method, properties, body):
     if text:
         try:
             cleaned_text = clean_text(text)
-            update_postgres(db_conn, doc_id, text)
+            update_postgres_and_elasticsearch(
+                db_conn, doc_id, cleaned_text, user_id)
         except Exception as e:
             logger.error(f"Failed to update PostgreSQL: {e}")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
