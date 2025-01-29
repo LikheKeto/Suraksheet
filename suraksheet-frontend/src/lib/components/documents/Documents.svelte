@@ -35,11 +35,11 @@
 				</p>
 			</Card>
 		{/each}
-	{:else if loadingDocuments}
-		<Skeleton divClass="animate-pulse w-full text-primary-500" size="lg" />
-	{:else}
+	{:else if !$loadingDocuments}
 		<div class="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-md">
 			<p class="text-gray-400">You have no documents</p>
 		</div>
+	{:else}
+		<Skeleton divClass="animate-pulse w-full text-primary-500" size="lg" />
 	{/if}
 </div>

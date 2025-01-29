@@ -80,7 +80,7 @@
 			<input
 				type="text"
 				bind:this={searchInput}
-				class="border-1 focus:ring-primary-500 w-full rounded-md border-gray-500 bg-gray-600 ps-10 text-gray-300 placeholder:text-gray-400 focus:ring-2"
+				class="border-1 focus:ring-primary-500 w-full rounded-md border-gray-500 bg-gray-100 ps-10 text-gray-700 placeholder:text-gray-400 focus:ring-2 dark:bg-gray-600 dark:text-gray-300"
 				bind:value={searchQuery}
 				placeholder="Search..."
 				on:keydown={(e) => e.key === 'Enter' && performSearch()}

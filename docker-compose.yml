@@ -128,15 +128,15 @@ services:
     networks:
       - suraksheet-network
 
-  # frontend:
-  #   build:
-  #     context: ./suraksheet-frontend
-  #     dockerfile: Dockerfile
-  #   container_name: frontend
-  #   ports:
-  #     - "5173:5173"
-  #   networks:
-  #     - suraksheet-network
+  frontend:
+    build:
+      context: ./suraksheet-frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - suraksheet-network
 
 volumes:
   postgres-data:
