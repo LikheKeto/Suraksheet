@@ -126,9 +126,24 @@ services:
     networks:
       - suraksheet-network
 
+  caddy:
+    image: caddy
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - suraksheet-network
+
 volumes:
   postgres-data:
   minio-data:
+  caddy_data:
+  caddy_config:
 
 networks:
   suraksheet-network:
